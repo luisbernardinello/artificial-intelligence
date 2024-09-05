@@ -114,30 +114,33 @@ def imprime_solucao(caminho):
 
 def main():
     # estados para os experimentos
-    config_inicial_1 = ["x", "o", "x",
-                        "o", "x", "o",
-                        "_", "_", "_"]
+    estado_inicial_1 = [2, 8, 3,
+                        1, 6, 4,
+                        7, 0, 5]
     
-    config_inicial_2 = ["x", "o", "x",
-                         "o", "o", "x",
-                         "_", "_", "_"]
+    estado_objetivo_1 = [1, 2, 3,
+                         8, 0, 4,
+                         7, 6, 5]
 
-    config_inicial_3 = ["o", "_", "x",
-                        "_", "x", "_",
-                        "o", "_", "_"]
+    estado_inicial_2 = [7, 2, 4,
+                        5, 0, 6,
+                        8, 3, 1]
+    
+    estado_objetivo_2 = [1, 2, 3,
+                         4, 5, 6,
+                         7, 8, 0]
     
 
-
-    escolha = int(input("Escolha o experimento a ser executado: \n- Experimento 1 (digite 1)\n- Experimento 2 (digite 2):\n- Experimento 3 (digite 3):\n "))
+    escolha = int(input("Escolha o experimento a ser executado: \n- Experimento 1 (digite 1)\n- Experimento 2 (digite 2):\n "))
 
     if escolha == 1:
-        estado_inicial = config_inicial_1
+        estado_inicial = estado_inicial_1
+        estado_objetivo = estado_objetivo_1
     elif escolha == 2:
-        estado_inicial = config_inicial_2
-    elif escolha == 3:
-        estado_inicial = config_inicial_3
+        estado_inicial = estado_inicial_2
+        estado_objetivo = estado_objetivo_2
     else:
-        print("Escolha inválida, por favor digite 1, 2 ou 3!")
+        print("Escolha inválida, por favor digite 1 ou 2!")
         return
     
     
