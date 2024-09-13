@@ -1,5 +1,6 @@
 import random
 import matplotlib.pyplot as plt
+import numpy as np
 
 class Individuo:
     def __init__(self, gene, fitness=None):
@@ -37,14 +38,7 @@ class Population:
         for _ in range(size):
             gene = [random.randint(0, 1) for _ in range(num_genes)]
             individuo = Individuo(gene)
-            individuo.calcula_fitness()
-            
-            # medida para evitar individuos com fitness 0.0 inicialmente
-            while individuo.fitness == 0.0:
-                gene = [random.randint(0, 1) for _ in range(num_genes)]
-                individuo = Individuo(gene)
-                individuo.calcula_fitness()
-
+            #individuo.calcula_fitness()   
             individuos.append(individuo)
         self.individuos = individuos
         
@@ -59,6 +53,10 @@ class Population:
                 melhor = individuo
         
         return melhor
+    
+    def avaliar_populacao(self):
+        for individuo in self.individuos:
+            individuo.calcula_fitness()
 
     def selecao_torneio(self, k=3):
         """ seleção feita por torneio """
@@ -83,6 +81,7 @@ def crossover(pai1, pai2):
 
 def algoritmo_genetico(popsize, num_geracoes, taxa_crossover, taxa_mutacao):
     populacao = Population(popsize, len(valores)) # inicializa a população
+    populacao.avaliar_populacao()
 
     melhor_fitness_geracao = []
     fitness_medio_geracao = []
@@ -133,9 +132,16 @@ def algoritmo_genetico(popsize, num_geracoes, taxa_crossover, taxa_mutacao):
 
 
 def main():
-
+    dimensao = 30 # dimensao do problema (numero de genes)
     global valores
-    valores = [5, 3, 2, 1, 9]
+    
+    valores = np.random.randint(0, 10, dimensao)
+
+    # global valores
+    # valores = [
+    #     15, 30, 25, 18, 12, 9, 22, 33, 41, 5, 16, 27, 13, 19, 24, 
+    #     11, 29, 36, 23, 42, 17, 39, 6, 21, 31, 14, 28, 10, 35, 20
+    # ]
 
     popsize = 50
     num_geracoes = 150

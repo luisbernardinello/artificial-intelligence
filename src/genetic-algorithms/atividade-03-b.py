@@ -2,6 +2,7 @@ import os
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 
 uk_dist_arq = os.path.join("atividade-03-b/uk12/uk12_dist.txt")
 uk_cities_arq = os.path.join("atividade-03-b/uk12/uk12_name.txt")
@@ -10,13 +11,12 @@ ha30_dist_arq = os.path.join("atividade-03-b/ha30/ha30_dist.txt")
 ha30_cities_arq = os.path.join("atividade-03-b/ha30/ha30_name.txt")
 
 
-
 def carrega_matriz_dist(filename):
     with open(filename, 'r') as f:
         matriz_dist = []
         for linha in f:
             matriz_dist.append(list(map(int, linha.split())))
-    return np.array(matriz_dist)
+    return matriz_dist
 
 
 def carrega_nomes_cidades(filename):
@@ -31,28 +31,26 @@ class Individuo:
         self.fitness = None
 
     def calcula_fitness(self, matriz_dist):
-        """ Cálculo da distância total (fitness) da rota """
+        """ calculo do fitness (distância total) da rota """
         self.fitness = calcula_distancia(self.gene, matriz_dist)
 
     def mutar(self, taxa_mutacao):
-        """ Aplica mutação (swap) com base na taxa de mutação """
+        """ mutaçaõ (swap) com base na taxa de mutação """
         if random.random() < taxa_mutacao:
-            i, j = random.sample(range(1, len(self.gene)), 2)  # evita a cidade de origem
+            i, j = random.sample(range(1, len(self.gene)), 2)  # evita a cidade de origem ja que a cidade de origem deve ser fixa
             self.gene[i], self.gene[j] = self.gene[j], self.gene[i]
 
 class Population:
-    def __init__(self, size, num_cities):
+    def __init__(self, size, num_cidades):
         self.size = size
-        self.num_cities = num_cities
+        self.num_cidades = num_cidades
         
         self.individuos = []
         for _ in range(size):
-            # Criação direta dos genes (rota aleatória)
-            gene = list(range(1, num_cities))  # Evita a cidade de origem
+            gene = list(range(1, num_cidades))  # evita a cidade de origem, deixando ela fixa para cada individuo como a primeira cidade da rota
             random.shuffle(gene)
-            gene = [0] + gene  # Adiciona a cidade de origem no início
+            gene = [0] + gene  # cidade de origem no inicio
 
-            # Criação do indivíduo com os genes gerados
             individuo = Individuo(gene)
             self.individuos.append(individuo)
             
@@ -86,26 +84,37 @@ class Population:
 
 
 def calcula_distancia(route, matriz_dist):
-    """ Soma das distâncias da rota """
-    distancia_total = sum(matriz_dist[route[i], route[i + 1]] for i in range(len(route) - 1))
-    distancia_total += matriz_dist[route[-1], route[0]]  # Volta à origem
+    """ Soma das distâncias da rota usando um loop explícito """
+    distancia_total = 0
+
+    # for nas cidades da rota e somando as distancias
+    for i in range(len(route) - 1):
+        cidade_atual = route[i]
+        proxima_cidade = route[i + 1]
+        distancia_total += matriz_dist[cidade_atual][proxima_cidade]
+
+    # soma de volta a cidade de origem fechando o ciclo
+    distancia_total += matriz_dist[route[-1]][route[0]] # distancia entre a ultima cidade da rota e a primeira cidade
+
     return distancia_total
 
-def pmx_crossover(pai1, pai2):
-    """ Implementação do crossover PMX """
-    size = len(pai1.gene)
-    filho1, filho2 = pai1.gene[:], pai2.gene[:]
 
-    # Pontos de crossover
-    cx1, cx2 = sorted(random.sample(range(1, size), 2))
 
-    # Troca de segmentos entre os pais
-    for i in range(cx1, cx2):
-        temp1, temp2 = filho1[i], filho2[i]
-        filho1[i], filho2[i] = temp2, temp1
-    return Individuo(filho1), Individuo(filho2)
+def crossover(pai1, pai2):
+    """ Faz o crossover entre dois indivividuos da população """
+    ponto_corte = random.randint(1, len(pai1.gene) - 1)  # ponto de corte gerado aleatoriamente
+    filho_genes = pai1.gene[:ponto_corte]  # pega genes do pai1 até o ponto de corte
+    
+    # completa o filho com genes do pai2, na ordem, sem duplicatas
+    for gene in pai2.gene:
+        if gene not in filho_genes:
+            filho_genes.append(gene)
 
-def algoritmo_genetico(matriz_dist, popsize, num_geracoes, taxa_crossover, taxa_mutacao):
+    return Individuo(filho_genes)
+
+
+
+def algoritmo_genetico(matriz_dist, popsize, num_geracoes, taxa_crossover, taxa_mutacao): #algoritmo analogo ao experimento 1
     populacao = Population(popsize, len(matriz_dist))
     populacao.avaliar_populacao(matriz_dist)
     
@@ -120,9 +129,12 @@ def algoritmo_genetico(matriz_dist, popsize, num_geracoes, taxa_crossover, taxa_
             pai2 = populacao.selecao_torneio()
 
             if random.random() < taxa_crossover:
-                filho1, filho2 = pmx_crossover(pai1, pai2)
+                filho1 = crossover(pai1, pai2)
+                filho2 = crossover(pai2, pai1)
             else:
-                filho1, filho2 = pai1, pai2
+                filho1 = Individuo(pai1.gene[:])
+                filho2 = Individuo(pai2.gene[:])
+
 
             filho1.mutar(taxa_mutacao)
             filho2.mutar(taxa_mutacao)
@@ -134,7 +146,6 @@ def algoritmo_genetico(matriz_dist, popsize, num_geracoes, taxa_crossover, taxa_
 
         populacao.individuos = nova_populacao[:popsize]
 
-        # Avaliação da geração
         melhor_individuo = populacao.melhor_individuo()
         fitness_medio = sum([ind.fitness for ind in populacao.individuos]) / popsize
 
@@ -192,3 +203,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
