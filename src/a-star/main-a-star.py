@@ -1,6 +1,6 @@
 import heapq
+import time
 from copy import deepcopy
-
 
 class Tabuleiro:
     def __init__(self, estado):
@@ -56,30 +56,26 @@ class Tabuleiro:
 
 
 class Node:
-    def __init__(self, state, parent=None, g=0, h=0, depth=0):
+    def __init__(self, state, parent=None, g=0, h=0):
         self.state = state
-        self.parent = parent
-        self.g = g  # Custo do caminho até o nó
+        self.parent = parent  # referência ao nó pai
+        self.g = g  # custo do caminho até o nó
         self.h = h  # Heurística
         self.f = g + h  # f = g + h
-        self.depth = depth  # Profundidade do nó na árvore de busca
 
     def __lt__(self, other):
-        # Nós com menor f são considerados melhores
-        if self.f == other.f:
-            return self.depth > other.depth  # Em caso de empate, desempata pela profundidade
+        # nós com menor f são considerados melhores
         return self.f < other.f
 
 
-# Função para expandir nós (gerar filhos)
+# expandir nós (gerar filhos)
 def expand(node):
     """Gera os nós filhos a partir do estado atual"""
     filhos = node.state.gera_novos_estados()
     return [Node(state=filho, parent=node, g=node.g + 1, depth=node.depth + 1) for filho in filhos]
 
 
-# Função heurística (Manhattan)
-def heuristic(state, goal):
+def heuristic_manhattan(state, goal):
     """Calcula a soma das distâncias de Manhattan para cada peça"""
     distancia_total = 0
     for i in range(len(state.estado)):
@@ -89,62 +85,62 @@ def heuristic(state, goal):
             distancia_total += abs(posicao_atual // 3 - posicao_objetivo // 3) + abs(posicao_atual % 3 - posicao_objetivo % 3)
     return distancia_total
 
+def heuristic_naive(tabuleiro, objetivo):
+    """
+    Calcula o número de peças fora da posição correta.
+    """
+    contagem = 0
+    for i in range(len(tabuleiro.estado)):
+        if tabuleiro.estado[i] != objetivo.estado[i] and tabuleiro.estado[i] != 0:
+            contagem += 1
+    return contagem
 
-# Verificação se o nó atual é a meta
+
+# se o nó atual é a meta
 def is_goal(state, goal):
     """Verifica se o estado atual é o objetivo"""
     return state == goal
 
 
-# Função principal do SMA*
-def sma_star(root, goal, memory_limit):
-    """Implementação do algoritmo SMA*"""
+def a_estrela(root, goal):
+    """Implementação do algoritmo A*"""
     frontier = []
-    heapq.heappush(frontier, root)  # Usar uma fila de prioridade para nós baseados em f
-    reached = {tuple(root.state.estado): root}  # Dicionário para estados já alcançados
+    heapq.heappush(frontier, root)  # fila de prioridade para nós baseados em f
+    reached = {tuple(root.state.estado): root}  # dicionário para estados já alcançados
+    nos_gerados = 0
 
     while frontier:
-        # Se a memória está cheia, remover o pior nó (com maior f-valor)
-        if len(frontier) > memory_limit:
-            worst_node = max(frontier, key=lambda n: n.f)  # Encontrar o pior nó
-            frontier.remove(worst_node)  # Remover manualmente da fronteira
-            heapq.heapify(frontier)  # Reajustar a heap após a remoção
-            # Atualizar o nó pai com o valor de f do nó removido
-            if worst_node.parent:
-                worst_node.parent.f = max(worst_node.parent.f, worst_node.f)
-            continue
-
-        # Expandir o melhor nó (com menor f-valor)
+        # expandir o melhor nó (com menor f-valor)
         current = heapq.heappop(frontier)
 
-        # Verificar se atingiu o objetivo
+        # verificar se atingiu o objetivo
         if is_goal(current.state, goal):
-            return reconstruct_path(current)
+            return reconstruct_path(current), nos_gerados
 
-        # Expandir o nó e adicionar os filhos à fronteira
+        # expandir o nó e adicionar os filhos à fronteira
         for child in expand(current):
-            child.h = heuristic(child.state, goal)  # Estimar o custo restante
+            child.h = heuristic_manhattan(child.state, goal)  # estimar o custo restante
             child.f = child.g + child.h
 
-            # Se o estado ainda não foi alcançado, ou se esse caminho é melhor
+            # se o estado ainda não foi alcançado, ou se esse caminho é melhor
             if tuple(child.state.estado) not in reached or child.f < reached[tuple(child.state.estado)].f:
                 heapq.heappush(frontier, child)
                 reached[tuple(child.state.estado)] = child
+                nos_gerados += 1  # incrementar o contador de nós gerados
 
-    # Se a memória estiver cheia e não houver solução possível, retornar falha
-    return None
+    # se não encontrar solução, retornar None
+    return None, nos_gerados
 
 
-# Função para reconstruir o caminho a partir do nó solução
+# reconstroi o caminho a partir do nó solução
 def reconstruct_path(node):
     path = []
     while node:
         path.append(node.state)
         node = node.parent
-    return path[::-1]  # Inverte o caminho
+    return path[::-1]  # inverte o caminho
 
 
-# Função para imprimir a solução
 def imprime_solucao(caminho):
     for estado in caminho:
         estado.imprime()
@@ -152,20 +148,48 @@ def imprime_solucao(caminho):
 
 
 def main():
-    estado_inicial = Tabuleiro([2, 8, 3, 1, 6, 4, 7, 0, 5])
-    estado_objetivo = Tabuleiro([1, 2, 3, 8, 0, 4, 7, 6, 5])
+    estado_inicial_1 = Tabuleiro([2, 8, 3,
+                                  1, 6, 4,
+                                  7, 0, 5])
 
-    # Inicializar o nó raiz
-    root = Node(state=estado_inicial, g=0, h=heuristic(estado_inicial, estado_objetivo), depth=0)
+    estado_objetivo_1 = Tabuleiro([1, 2, 3,
+                                   8, 0, 4,
+                                   7, 6, 5])
 
-    # Limite de memória (número de nós na fronteira)
-    memory_limit = 1000
+    estado_inicial_2 = Tabuleiro([7, 2, 4,
+                                  5, 0, 6,
+                                  8, 3, 1])
 
-    # Executar SMA*
-    caminho = sma_star(root, estado_objetivo, memory_limit)
+    estado_objetivo_2 = Tabuleiro([1, 2, 3,
+                                   4, 5, 6,
+                                   7, 8, 0])
+
+    escolha = int(input("Escolha o experimento a ser executado: \n1- Experimento 1 \n2- Experimento 2 \n "))
+
+    if escolha == 1:
+        estado_inicial = estado_inicial_1
+        estado_objetivo = estado_objetivo_1
+        print("Executando Experimento 1 com Heurística Manhattan...\n")
+    elif escolha == 2:
+        estado_inicial = estado_inicial_2
+        estado_objetivo = estado_objetivo_2
+        print("Executando Experimento 2 com Heurística Manhattan...\n")
+    else:
+        print("Escolha inválida!")
+        return
+
+    root = Node(state=estado_inicial, g=0, h=heuristic_manhattan(estado_inicial, estado_objetivo))
+    
+    tempo_inicial = time.time()
+    
+    caminho, nos_gerados = a_estrela(root, estado_objetivo)
+    
+    tempo_final = time.time()
+
 
     if caminho:
         imprime_solucao(caminho)
+        print(f"Nós gerados: {nos_gerados}, Tempo: {tempo_final - tempo_inicial:.6f} segundos\n")
     else:
         print("Nenhuma solução encontrada.")
 
