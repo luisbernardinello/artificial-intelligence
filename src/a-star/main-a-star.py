@@ -13,25 +13,25 @@ class Tabuleiro:
         novo_estados = []
         posicao_vazia = self.estado.index(0)
 
-        # Novo estado para baixo
+        # novo estado para baixo
         if posicao_vazia < 6:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia + 3)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para cima
+        # novo estado para cima
         if posicao_vazia > 2:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia - 3)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para a direita
+        # novo estado para a direita
         if posicao_vazia % 3 < 2:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia + 1)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para a esquerda
+        # novo estado para a esquerda
         if posicao_vazia % 3 > 0:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia - 1)
@@ -68,7 +68,7 @@ class Node:
         return self.f < other.f
 
 
-# expandir nós (gerar filhos)
+# expande nós (gerar filhos)
 def expand(node):
     """Gera os nós filhos a partir do estado atual"""
     filhos = node.state.gera_novos_estados()
@@ -110,29 +110,28 @@ def a_estrela(root, goal):
     nos_gerados = 0
 
     while frontier:
-        # expandir o melhor nó (com menor f-valor)
+        # expande o melhor nó (com menor f-valor)
         current = heapq.heappop(frontier)
 
-        # verificar se atingiu o objetivo
+        # verifica se atingiu o objetivo
         if is_goal(current.state, goal):
             return reconstruct_path(current), nos_gerados
 
-        # expandir o nó e adicionar os filhos à fronteira
+        # expande o nó e adicionar os filhos à fronteira
         for child in expand(current):
-            child.h = heuristic_manhattan(child.state, goal)  # estimar o custo restante
+            child.h = heuristic_manhattan(child.state, goal)  # estima o custo restante
             child.f = child.g + child.h
 
             # se o estado ainda não foi alcançado, ou se esse caminho é melhor
             if tuple(child.state.estado) not in reached or child.f < reached[tuple(child.state.estado)].f:
                 heapq.heappush(frontier, child)
                 reached[tuple(child.state.estado)] = child
-                nos_gerados += 1  # incrementar o contador de nós gerados
+                nos_gerados += 1  # incrementa o contador de nós gerados
 
-    # se não encontrar solução, retornar None
+    # se não existir solução, retorna None
     return None, nos_gerados
 
 
-# reconstroi o caminho a partir do nó solução
 def reconstruct_path(node):
     path = []
     while node:

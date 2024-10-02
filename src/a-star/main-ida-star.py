@@ -12,25 +12,25 @@ class Tabuleiro:
         novo_estados = []
         posicao_vazia = self.estado.index(0)
 
-        # Novo estado para baixo
+        # novo estado para baixo
         if posicao_vazia < 6:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia + 3)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para cima
+        # novo estado para cima
         if posicao_vazia > 2:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia - 3)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para a direita
+        # novo estado para a direita
         if posicao_vazia % 3 < 2:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia + 1)
             novo_estados.append(novo_tabuleiro)
 
-        # Novo estado para a esquerda
+        # novo estado para a esquerda
         if posicao_vazia % 3 > 0:
             novo_tabuleiro = deepcopy(self.estado)
             self.troca_elementos(novo_tabuleiro, posicao_vazia, posicao_vazia - 1)
@@ -57,23 +57,21 @@ class Tabuleiro:
 class Node:
     def __init__(self, state, parent=None, g=0, h=0):
         self.state = state
-        self.parent = parent  # Referência ao nó pai
-        self.g = g  # Custo do caminho até o nó
-        self.h = h  # Heurística
-        self.f = g + h  # f = g + h
+        self.parent = parent
+        self.g = g
+        self.h = h
+        self.f = g + h
 
     def __lt__(self, other):
         return self.f < other.f
 
 
-# Função para expandir nós (gerar filhos)
 def expand(node):
     """Gera os nós filhos a partir do estado atual"""
     filhos = node.state.gera_novos_estados()
     return [Node(state=filho, parent=node, g=node.g + 1) for filho in filhos]
 
 
-# Função heurística (Manhattan)
 def heuristic(state, goal):
     """Calcula a soma das distâncias de Manhattan para cada peça"""
     distancia_total = 0
@@ -85,71 +83,67 @@ def heuristic(state, goal):
     return distancia_total
 
 
-# Verificação se o nó atual é a meta
 def is_goal(state, goal):
     """Verifica se o estado atual é o objetivo"""
     return state == goal
 
 
-# Função principal do IDA*
 def ida_star(root, goal):
     """Implementação do algoritmo IDA*"""
     def search(node, threshold):
         f = node.g + node.h
 
-        # Se o valor de f exceder o limite atual, retornar esse valor
+        # caso do valor de f exceder o limite atual, retorna o valor
         if f > threshold:
             return f
 
-        # Se for o objetivo, retornar o nó (sucesso)
+        # caso seja o objetivo, retornar o nó (sucesso)
         if is_goal(node.state, goal):
             return node
 
-        min_threshold = math.inf  # Novo limite a ser definido
+        min_threshold = math.inf  # novo limite a ser definido
 
-        # Expandir nós filhos
+        # expande nós filhos
         for child in expand(node):
             child.h = heuristic(child.state, goal)
             result = search(child, threshold)
 
-            # Se encontrou a solução, retorna o caminho
+            # se encontrou a solução, retorna o resultado
             if isinstance(result, Node):
                 return result
 
-            # Caso contrário, atualiza o novo limite
+            # caso contrário, atualiza o novo limite
             if result < min_threshold:
                 min_threshold = result
 
         return min_threshold
 
-    # Iniciar com o nó raiz
+    # iniciar com o nó raiz
     threshold = root.f
 
     while True:
         result = search(root, threshold)
 
-        # Se encontrar a solução, retorna
+        # se encontrar a solução, retorna o caminho
         if isinstance(result, Node):
             return reconstruct_path(result)
 
-        # Se não houver mais nós, retornar falha
+        # se não existirem mais nós, retornar falha
         if result == math.inf:
             return None
 
-        # Atualiza o threshold para a próxima iteração
+        # atualiza o threshold para a prox iteração
         threshold = result
 
 
-# Função para reconstruir o caminho a partir do nó solução
 def reconstruct_path(node):
     path = []
     while node:
         path.append(node.state)
         node = node.parent
-    return path[::-1]  # Inverte o caminho
+    return path[::-1]
 
 
-# Função para imprimir a solução
 def imprime_solucao(caminho):
     for estado in caminho:
         estado.imprime()
@@ -160,10 +154,9 @@ def main():
     estado_inicial = Tabuleiro([2, 8, 3, 1, 6, 4, 7, 0, 5])
     estado_objetivo = Tabuleiro([1, 2, 3, 8, 0, 4, 7, 6, 5])
 
-    # Inicializar o nó raiz
+
     root = Node(state=estado_inicial, g=0, h=heuristic(estado_inicial, estado_objetivo))
 
-    # Executar IDA*
     caminho = ida_star(root, estado_objetivo)
 
     if caminho:
