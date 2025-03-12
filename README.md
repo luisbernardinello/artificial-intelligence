@@ -1,5 +1,3 @@
-# Artificial Intelligence
-
 ![Unesp](https://img.shields.io/badge/BCC-UNESP-Bauru.svg)
 ![License](https://img.shields.io/badge/Code%20License-MIT-blue.svg)
 
@@ -48,7 +46,7 @@ Systems for representing and reasoning with knowledge:
 
 ### 3. Machine Learning
 
-Implementation of various machine learning algorithms:
+Implementation of machine learning algorithms:
 
 - **Supervised Learning**
 
@@ -76,27 +74,6 @@ Basic NLP implementations:
 - Sentiment analysis
 - N-gram models
 - Word embeddings
-
-## Implementation Details
-
-### Algorithm Design
-
-Each algorithm implementation includes:
-
-- Clean, well-documented Python code
-- Theoretical explanation of the underlying concepts
-- Performance analysis and comparisons
-- Example problems and applications
-- Visualization tools where applicable
-
-### Optimization Techniques
-
-The implementations incorporate various optimization strategies:
-
-- Heuristic functions for informed search algorithms
-- Pruning methods for decision trees
-- Gradient descent variations for neural networks
-- Dynamic programming for reinforcement learning
 
 ## 📚 References
 
