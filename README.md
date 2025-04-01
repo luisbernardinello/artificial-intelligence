@@ -8,9 +8,7 @@ This repository contains Python implementations of various artificial intelligen
 ## 📚 References
 
 - Russell, S. J., & Norvig, P. (2020). _Artificial Intelligence: A Modern Approach_ (4th ed.). Pearson.
-- Mitchell, T. M. (1997). _Machine Learning_. McGraw-Hill.
 - Goodfellow, I., Bengio, Y., & Courville, A. (2016). _Deep Learning_. MIT Press.
-- Sutton, R. S., & Barto, A. G. (2018). _Reinforcement Learning: An Introduction_ (2nd ed.). MIT Press.
 - Jurafsky, D., & Martin, J. H. (2020). _Speech and Language Processing_. Stanford University.
 
 ## 📄 License
